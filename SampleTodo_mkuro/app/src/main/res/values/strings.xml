@@ -1,0 +1,32 @@
+<resources>
+    <!-- Application Setting -->
+    <string name="app_name">SampleTodo</string>
+
+    <!-- MainList Setting -->
+    <string name="move_complete">Move to CompleteList</string>
+    <string name="add_remind">Add Remind</string>
+    <string name="edit">Edit</string>
+    <string name="complete">Complete</string>
+
+    <!-- Dialog Title -->
+    <string name="title_add">Add Remind</string>
+    <string name="title_edit">Edit Remind</string>
+
+    <!-- CompleteScreen Setting -->
+    <string name="move_main">Move to MainList</string>
+    <!-- Todo using to implementation of restore -->
+    <!--<string name="restore">Restore</string>-->
+
+    <!-- Dialog Setting -->
+    <string name="remind_name">Title</string>
+    <string name="remind_date">Date</string>
+    <string name="remind_place">Place</string>
+    <string name="remind_memo">Memo</string>
+
+    <!-- Dialog Button -->
+    <string name="button_OK">OK</string>
+    <string name="button_Cancel">Cancel</string>
+
+    <!-- Messages -->
+    <string name="title_empty">Title is Required input</string>
+</resources>
