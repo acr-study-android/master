@@ -17,24 +17,21 @@ abstract class BaseDialog extends AlertDialog.Builder {
 
     void inflate(int resource) {
         mDialogLayoutView = LayoutInflater.from(getContext()).inflate(resource, null);
+        super.setView(mDialogLayoutView);
     }
 
     View getLayoutView() {
         return mDialogLayoutView;
     }
 
-    AlertDialog.Builder setPositiveButton(DialogInterface.OnClickListener listener) {
-        return super.setPositiveButton(R.string.button_OK, listener);
+    BaseDialog setPositiveButton(DialogInterface.OnClickListener listener) {
+        super.setPositiveButton(R.string.button_OK, listener);
+        return this;
     }
 
-    AlertDialog.Builder setNegativeButton(DialogInterface.OnClickListener listener) {
-        return super.setNegativeButton(R.string.button_Cancel, listener);
-    }
-
-    @Override
-    public AlertDialog show() {
-        super.setView(mDialogLayoutView);
-        return super.show();
+    BaseDialog setNegativeButton(DialogInterface.OnClickListener listener) {
+        super.setNegativeButton(R.string.button_Cancel, listener);
+        return this;
     }
 
     void registerCallbackListener(MainActivity.CallbackListener listener) {

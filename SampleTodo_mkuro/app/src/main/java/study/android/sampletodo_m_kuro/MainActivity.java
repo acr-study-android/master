@@ -1,6 +1,7 @@
 package study.android.sampletodo_m_kuro;
 
-import android.os.AsyncTask;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         public void onNotifyPositiveAction(RemindItem item) {
             Log.v(LOG_TAG, "onNotifyPositiveAction item:" + item);
             if (item != null) {
+                item.setId(mRemindItems.size());
                 mRemindItems.add(item);
                 updateList();
             }
@@ -46,8 +48,18 @@ public class MainActivity extends AppCompatActivity {
     };
     private AdapterView.OnItemClickListener mItemClickListener = new AdapterView.OnItemClickListener() {
         @Override
-        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-//            mShowDialog.createDialogLayout().show();
+        public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+            Log.v(LOG_TAG, "onItemClick");
+            ListView list = (ListView)adapterView;
+            String clickName = (String)list.getItemAtPosition(position);
+            RemindItem clickItem = null;
+            for (RemindItem item : mRemindItems) {
+                if (clickName.equals(item.getName())) {
+                    clickItem = item;
+                    break;
+                }
+            }
+            createShowRemindDialog(clickItem).show();
         }
     };
 
@@ -57,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initialize();
-        asyncInitialize();
     }
 
     @Override
@@ -70,10 +81,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
+        switch(v.getId()) {
+            case R.id.list_view:
+                getMenuInflater().inflate(R.menu.context, menu);
+                break;
+        }
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
+        if (item == null) {
+            return false;
+        }
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        RemindItem remindItem = mRemindItems.get(info.position);
+        switch(item.getItemId()) {
+            case R.id.move_complete:
+                createShowRemindDialog(remindItem)
+                        .setNegativeButton(null)
+                        .setTitle(R.string.confirm_complete).show();
+                break;
+            case R.id.edit:
+                createEditRemindDialog(remindItem).show(remindItem.getId());
+                break;
+        }
         return super.onContextItemSelected(item);
     }
 
@@ -81,10 +112,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.move_complete:
-                mShowDialog.show();
                 break;
             case R.id.add_remind:
-                mEditDialog.show();
+                createEditRemindDialog(null).show();
                 break;
             default:
                 break;
@@ -92,30 +122,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void asyncInitialize() {
-        new AsyncTask() {
-            @Override
-            protected Object doInBackground(Object[] objects) {
-                mEditDialog.init();
-                mEditDialog.registerCallbackListener(mCallbackListener);
-                return null;
-            }
-        }.execute();
-
-        new AsyncTask() {
-            @Override
-            protected Object doInBackground(Object[] objects) {
-                mShowDialog.init();
-                mShowDialog.registerCallbackListener(mCallbackListener);
-                return null;
-            }
-        }.execute();
-    }
-
     private void initialize() {
-        mEditDialog = new EditRemindDialog(this);
-        mShowDialog = new ShowRemindDialog(this);
-
         ListView listview = findViewById(R.id.list_view);
         updateList();
         listview.setAdapter(mArrayAdapter);
@@ -127,7 +134,9 @@ public class MainActivity extends AppCompatActivity {
     private void updateList() {
         final ArrayList<String> itemsList = new ArrayList<>();
         for (RemindItem item : mRemindItems) {
-            itemsList.add(item.getName());
+            if (!item.isComplete()) {
+                itemsList.add(item.getName());
+            }
         }
         if (mArrayAdapter == null) {
             mArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, itemsList);
@@ -136,6 +145,26 @@ public class MainActivity extends AppCompatActivity {
             mArrayAdapter.addAll(itemsList);
             mArrayAdapter.notifyDataSetChanged();
         }
+    }
+
+    private ShowRemindDialog createShowRemindDialog(RemindItem item) {
+        if (mShowDialog != null) {
+            mShowDialog.unregisterCallbackListener(mCallbackListener);
+        }
+        mShowDialog = new ShowRemindDialog(this);
+        mShowDialog.init();
+        mShowDialog.registerCallbackListener(mCallbackListener);
+        return (ShowRemindDialog)mShowDialog.createDialogLayout(item);
+    }
+
+    private EditRemindDialog createEditRemindDialog(RemindItem item) {
+        if (mEditDialog != null) {
+            mEditDialog.unregisterCallbackListener(mCallbackListener);
+        }
+        mEditDialog = new EditRemindDialog(this);
+        mEditDialog.init();
+        mEditDialog.registerCallbackListener(mCallbackListener);
+        return (EditRemindDialog)mEditDialog.createDialogLayout(item);
     }
 
     /**

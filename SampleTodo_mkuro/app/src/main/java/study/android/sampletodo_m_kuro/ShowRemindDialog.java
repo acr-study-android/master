@@ -1,12 +1,20 @@
 package study.android.sampletodo_m_kuro;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.View;
 import android.widget.TextView;
 
-public class ShowRemindDialog extends BaseDialog {
+class ShowRemindDialog extends BaseDialog {
 
     private static final String LOG_TAG = ShowRemindDialog.class.getSimpleName();
+
+    private DialogInterface.OnClickListener mCompleteListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i) {
+
+        }
+    };
 
     ShowRemindDialog(Context context) {
         super(context);

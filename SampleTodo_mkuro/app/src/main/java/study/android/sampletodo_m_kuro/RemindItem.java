@@ -3,12 +3,29 @@ package study.android.sampletodo_m_kuro;
 import android.text.Editable;
 
 class RemindItem {
+    private int mId;
     private String mName;
     private String mDate;
     private String mPlace;
     private String mMemo;
 
     private boolean mCompleteFlag;
+
+    RemindItem(int id, Editable name, Editable date, Editable place, Editable memo) {
+        mId = id;
+        if (name != null) {
+            mName = name.toString();
+        }
+        if (date != null) {
+            mDate = date.toString();
+        }
+        if (place != null) {
+            mPlace = place.toString();
+        }
+        if (memo != null) {
+            mMemo = memo.toString();
+        }
+    }
 
     RemindItem(Editable name, Editable date, Editable place, Editable memo) {
         if (name != null) {
@@ -23,6 +40,14 @@ class RemindItem {
         if (memo != null) {
             mMemo = memo.toString();
         }
+    }
+
+    void setId(int id) {
+        mId = id;
+    }
+
+    int getId() {
+        return mId;
     }
 
     void setName(String name) {

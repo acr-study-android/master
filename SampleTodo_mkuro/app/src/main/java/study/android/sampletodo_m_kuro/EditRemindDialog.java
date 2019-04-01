@@ -2,28 +2,33 @@ package study.android.sampletodo_m_kuro;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.EditText;
 
 class EditRemindDialog extends BaseDialog {
 
     private static final String LOG_TAG = EditRemindDialog.class.getSimpleName();
+    private int mEditItemId;
 
-    private DialogInterface.OnClickListener mPositiveButtonListener = new DialogInterface.OnClickListener() {
+    private DialogInterface.OnClickListener mCreateRemindListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialogInterface, int i) {
-            View layoutView = getLayoutView();
+            RemindItem item = createRemindItem();
 
-            EditText editText = layoutView.findViewById(R.id.remind_name_edit);
-            EditText editDate = layoutView.findViewById(R.id.remind_date_edit);
-            EditText editPlace = layoutView.findViewById(R.id.remind_place_edit);
-            EditText editMemo = layoutView.findViewById(R.id.remind_memo_edit);
+            if (item.getName() == null || item.getName().isEmpty()) {
+                createDialogLayout(item);
+                show();
+            }
+            notifyOnPositiveButtonAction(item);
+        }
+    };
 
-            RemindItem item =
-                    new RemindItem(editText.getText(),
-                            editDate.getText(),
-                            editPlace.getText(),
-                            editMemo.getText());
+    private DialogInterface.OnClickListener mEditRemindListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i) {
+            RemindItem item = createRemindItem(mEditItemId);
+
             if (item.getName() == null || item.getName().isEmpty()) {
                 createDialogLayout(item);
                 show();
@@ -38,8 +43,39 @@ class EditRemindDialog extends BaseDialog {
 
     void init() {
         inflate(R.layout.edit_dialog);
-        setPositiveButton(mPositiveButtonListener);
         setNegativeButton(null);
+    }
+
+    @Override
+    public AlertDialog show() {
+        setPositiveButton(mCreateRemindListener);
+        return super.show();
+    }
+
+    void show(int id) {
+        mEditItemId = id;
+        setPositiveButton(mEditRemindListener);
+        super.show();
+    }
+
+    private RemindItem createRemindItem() {
+        return createRemindItem(null);
+    }
+
+    private RemindItem createRemindItem(Integer id) {
+        View layoutView = getLayoutView();
+
+        EditText editText = layoutView.findViewById(R.id.remind_name_edit);
+        EditText editDate = layoutView.findViewById(R.id.remind_date_edit);
+        EditText editPlace = layoutView.findViewById(R.id.remind_place_edit);
+        EditText editMemo = layoutView.findViewById(R.id.remind_memo_edit);
+
+        return id == null ?
+                new RemindItem(editText.getText(), editDate.getText(),
+                editPlace.getText(), editMemo.getText())
+                :
+                new RemindItem(id, editText.getText(), editDate.getText(),
+                editPlace.getText(), editMemo.getText());
     }
 
     @Override

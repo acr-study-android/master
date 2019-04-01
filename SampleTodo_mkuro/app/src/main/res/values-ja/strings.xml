@@ -1,0 +1,33 @@
+<resources>
+    <!-- Application Setting -->
+    <string name="app_name">SampleTodo</string>
+
+    <!-- MainList Setting -->
+    <string name="move_complete">完了リストに移動</string>
+    <string name="add_remind">リマインドの追加</string>
+    <string name="edit">編集</string>
+    <string name="complete">完了</string>
+
+    <!-- Dialog Title -->
+    <string name="title_add">リマインド追加</string>
+    <string name="title_edit">リマインド編集</string>
+
+    <!-- CompleteScreen Setting -->
+    <string name="move_main">リマインド一覧に移動</string>
+    <!-- Todo using to implementation of restore -->
+    <!--<string name="restore">復元</string>-->
+
+    <!-- Dialog Setting -->
+    <string name="remind_name">タイトル</string>
+    <string name="remind_date">日付</string>
+    <string name="remind_place">場所</string>
+    <string name="remind_memo">メモ</string>
+
+    <!-- Dialog Button -->
+    <string name="button_OK">OK</string>
+    <string name="button_Cancel">Cancel</string>
+
+    <!-- Messages -->
+    <string name="title_empty">タイトルは必須項目です</string>
+    <string name="confirm_complete">このリマインドを完了にして宜しいですか？</string>
+</resources>
