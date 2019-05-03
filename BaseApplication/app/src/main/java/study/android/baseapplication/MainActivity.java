@@ -19,9 +19,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity {
-    private TodoOpenHelper helper;
-    private SQLiteDatabase db;
     private MainActivity activity;
 
     @Override
@@ -56,14 +57,6 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                if(helper == null){
-                                    helper = new TodoOpenHelper(getApplicationContext());
-                                }
-
-                                if(db == null){
-                                    db = helper.getWritableDatabase();
-                                }
-
                                 String name = ((TextView)view.findViewById(R.id.name)).getText().toString();
                                 String date = ((TextView)view.findViewById(R.id.date)).getText().toString();
                                 String place = ((TextView)view.findViewById(R.id.place)).getText().toString();
@@ -75,11 +68,8 @@ public class MainActivity extends AppCompatActivity {
                                     toast.setGravity(Gravity.CENTER, 0, -200);
                                     toast.show();
                                 }else{
-                                    insertData(db, name,date,place,memo);
-                                    String[] array = readData();
-                                    ArrayAdapter adapter = new ArrayAdapter(activity, android.R.layout.simple_list_item_1, array);
-                                    ListView listView = (ListView)findViewById(R.id.listView);
-                                    listView.setAdapter(adapter);
+                                    insertData(name,date,place,memo);
+                                    updateListView();
                                 }
                             }
                         })
@@ -102,17 +92,8 @@ public class MainActivity extends AppCompatActivity {
 
         switch(v.getId()){
             case R.id.listView:
-
-                AdapterView.AdapterContextMenuInfo info =
-                        (AdapterView.AdapterContextMenuInfo) menuInfo;
-                String[] a = {"test1","test2"};
-                String s = a[info.position];
-                menu.setHeaderTitle(s);
-
-                getMenuInflater().inflate(
-                        R.menu.list_menu, menu
-                );
-
+                menu.setHeaderTitle("メニュー");
+                getMenuInflater().inflate(R.menu.list_menu, menu);
                 break;
         }
     }
@@ -120,17 +101,71 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
 
-        switch(item.getItemId()){
-            case R.id.listview_delete:
-                return true;
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        String[] a = readData();
+        final String s = a[info.position];
+        String[] strs = {s};
 
+        switch(item.getItemId()){
+            case R.id.listview_done:
+                deleteData(strs);
+                updateListView();
+                return true;
+            case R.id.listview_delete:
+                deleteData(strs);
+                updateListView();
+                return true;
             case R.id.listview_edit:
+                final View view = this.getLayoutInflater().inflate(R.layout.create_layout, null);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                        .setView(view)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+                            private String updateName = s;
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String name = ((TextView)view.findViewById(R.id.name)).getText().toString();
+                                String date = ((TextView)view.findViewById(R.id.date)).getText().toString();
+                                String place = ((TextView)view.findViewById(R.id.place)).getText().toString();
+                                String memo = ((TextView)view.findViewById(R.id.memo)).getText().toString();
+
+                                if(checkDuplicateName(name)){
+                                    Toast toast = Toast.makeText(activity, "名前が重複しているため登録できません。", Toast.LENGTH_LONG);
+                                    // 位置調整
+                                    toast.setGravity(Gravity.CENTER, 0, -200);
+                                    toast.show();
+                                }else {
+                                    updateData(updateName,name, date, place, memo);
+                                    updateListView();
+                                }
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        });
+
+                //SQLiteから値を取得する
+                Map map = readOneData(s);
+                ((TextView)view.findViewById(R.id.name)).setText((String)map.get("name"));
+                ((TextView)view.findViewById(R.id.date)).setText((String)map.get("date"));
+                ((TextView)view.findViewById(R.id.place)).setText((String)map.get("place"));
+                ((TextView)view.findViewById(R.id.memo)).setText((String)map.get("memo"));
+
+                builder.show();
                 return true;
         }
+
         return false;
     }
 
     private String[] readData(){
+        TodoOpenHelper helper = null;
+        SQLiteDatabase db = null;
+
         if(helper == null){
             helper = new TodoOpenHelper(getApplicationContext());
         }
@@ -159,10 +194,64 @@ public class MainActivity extends AppCompatActivity {
 
         cursor.close();
 
+        db.close();
+
         return array;
     }
 
-    private void insertData(SQLiteDatabase db, String name, String date, String place, String memo){
+    private Map readOneData(String name){
+        TodoOpenHelper helper = null;
+        SQLiteDatabase db = null;
+
+        if(helper == null){
+            helper = new TodoOpenHelper(getApplicationContext());
+        }
+
+        if(db == null){
+            db = helper.getReadableDatabase();
+        }
+
+        Cursor cursor = db.query(
+                "tododb",
+                new String[] { "name", "date", "place", "memo"},
+                "name = '" + name + "'",
+                null,
+                null,
+                null,
+                null
+        );
+
+        cursor.moveToFirst();
+
+        Map<String, String> map = new HashMap<String, String>();
+
+        for(int i = 0; i < cursor.getCount(); i++){
+            map.put("name", cursor.getString(0));
+            map.put("date", cursor.getString(1));
+            map.put("place", cursor.getString(2));
+            map.put("memo", cursor.getString(3));
+
+            cursor.moveToNext();
+        }
+
+        cursor.close();
+
+        db.close();
+
+        return map;
+    }
+
+    private void insertData(String name, String date, String place, String memo){
+        TodoOpenHelper helper = null;
+        SQLiteDatabase db = null;
+
+        if(helper == null){
+            helper = new TodoOpenHelper(getApplicationContext());
+        }
+
+        if(db == null){
+            db = helper.getWritableDatabase();
+        }
 
         ContentValues values = new ContentValues();
         values.put("name", name);
@@ -171,6 +260,31 @@ public class MainActivity extends AppCompatActivity {
         values.put("memo", memo);
 
         db.insert("tododb", null, values);
+
+        db.close();
+    }
+
+    private void updateData(String before_name, String name, String date, String place, String memo){
+        TodoOpenHelper helper = null;
+        SQLiteDatabase db = null;
+
+        if(helper == null){
+            helper = new TodoOpenHelper(getApplicationContext());
+        }
+
+        if(db == null){
+            db = helper.getWritableDatabase();
+        }
+
+        ContentValues values = new ContentValues();
+        values.put("name", name);
+        values.put("date", date);
+        values.put("place", place);
+        values.put("memo", memo);
+
+        db.update("tododb", values,"name = ?", new String[] {before_name});
+
+        db.close();
     }
 
     /**
@@ -189,5 +303,30 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return false;
+    }
+
+    private void updateListView(){
+        String[] array = readData();
+        ArrayAdapter adapter = new ArrayAdapter(activity, android.R.layout.simple_list_item_1, array);
+        ListView listView = (ListView)findViewById(R.id.listView);
+        listView.setAdapter(adapter);
+
+    }
+
+    private void deleteData(String[] strs){
+        TodoOpenHelper helper = null;
+        SQLiteDatabase db = null;
+
+        if(helper == null){
+            helper = new TodoOpenHelper(getApplicationContext());
+        }
+
+        if(db == null){
+            db = helper.getWritableDatabase();
+        }
+
+        db.delete("tododb", "name=?", strs);
+
+        db.close();
     }
 }
